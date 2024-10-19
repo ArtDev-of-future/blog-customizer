@@ -36,28 +36,29 @@ export const ArticleParamsForm = ({
 }: {
 	setPageState: (state: ArticleState) => void;
 }) => {
-	const [isOpen, setIsOpen] = useState<boolean>(false);
+	const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 	const [formState, setFormState] = useState(defaultState);
 	const resetForm = () => {
 		setFormState(defaultState);
 		setPageState(defaultState);
 	};
-	const sidebarRef = useRef<HTMLElement>(null);
+
+	const sidebarRef = useRef<HTMLDivElement>(null);
 	useEffect(() => {
 		const handleOutsideClick = (event: MouseEvent) => {
 			if (
 				sidebarRef.current &&
 				!sidebarRef.current.contains(event.target as Node)
 			) {
-				setIsOpen(false);
+				setIsMenuOpen(false);
 			}
 		};
 		const handleEsc = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
-				setIsOpen(false);
+				setIsMenuOpen(false);
 			}
 		};
-		if (isOpen) {
+		if (isMenuOpen) {
 			document.addEventListener('keydown', handleEsc);
 			window.addEventListener('mousedown', handleOutsideClick);
 		}
@@ -65,20 +66,32 @@ export const ArticleParamsForm = ({
 			document.removeEventListener('keydown', handleEsc);
 			window.removeEventListener('mousedown', handleOutsideClick);
 		};
-	}, [isOpen]);
+	}, [isMenuOpen]);
 
 	return (
-		<>
+		<div ref={sidebarRef}>
 			<ArrowButton
-				isOpen={isOpen}
+				isOpen={isMenuOpen}
 				onClick={() => {
-					setIsOpen(!isOpen);
+					setIsMenuOpen(!isMenuOpen);
 				}}
 			/>
 			<aside
-				className={clsx(styles.container, { [styles.container_open]: isOpen })}
-				ref={sidebarRef}>
-				<form className={styles.form}>
+				className={clsx(styles.container, {
+					[styles.container_open]: isMenuOpen,
+				})}>
+				<form
+					className={styles.form}
+					onSubmit={(e) => {
+						e.preventDefault();
+						setPageState({
+							fontFamily: formState.fontFamily,
+							fontSize: formState.fontSize,
+							fontColor: formState.fontColor,
+							contentWidth: formState.contentWidth,
+							backgroundColor: formState.backgroundColor,
+						});
+					}}>
 					<Text as='h2' size={31} uppercase={true} weight={800}>
 						Задайте параметры
 					</Text>
@@ -160,23 +173,10 @@ export const ArticleParamsForm = ({
 							type='clear'
 							onClick={resetForm}
 						/>
-						<Button
-							title='Применить'
-							htmlType='button'
-							type='apply'
-							onClick={() =>
-								setPageState({
-									fontFamily: formState.fontFamily,
-									fontSize: formState.fontSize,
-									fontColor: formState.fontColor,
-									contentWidth: formState.contentWidth,
-									backgroundColor: formState.backgroundColor,
-								})
-							}
-						/>
+						<Button title='Применить' htmlType='submit' type='apply' />
 					</div>
 				</form>
 			</aside>
-		</>
+		</div>
 	);
 };
